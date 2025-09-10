@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="İSG Hesaplama">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>İSG Personel Hesaplama - Mobil</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+            position: relative;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: max(env(safe-area-inset-top), 20px) 20px 25px 20px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        
+        .header p {
+            font-size: 0.85em;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .content {
+            padding: 20px;
+            padding-bottom: max(env(safe-area-inset-bottom), 20px);
+        }
+        
+        .input-card {
+            background: #f8f9ff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 16px;
+        }
+        
+        input[type="number"], select {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 17px;
+            background: white;
+            transition: all 0.3s ease;
+            appearance: none;
+        }
+        
+        input[type="number"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            margin-top: 10px;
+        }
+        
+        .calculate-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .calculate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border-left: 5px solid #28a745;
+        }
+        
+        .result-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.1em;
+        }
+        
+        .icon {
+            width: 32px;
+            height: 32px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        
+        .result-grid {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .result-row {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .result-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .result-value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .highlight-value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .highlight-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .alert {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 12px 15px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #856404;
+            line-height: 1.4;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .clear-btn {
+            background: #6c757d;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .clear-btn:active {
+            transform: scale(0.98);
+        }
+        
+        /* iPhone 14 özel optimizasyonlar */
+        @media screen and (max-width: 430px) {
+            .content {
+                padding: 15px;
+            }
+            
+            .input-card, .result-card {
+                padding: 20px;
+                border-radius: 12px;
+            }
+            
+            input[type="number"], select {
+                padding: 14px;
+                font-size: 16px;
+            }
+            
+            .calculate-btn {
+                padding: 16px;
+                font-size: 17px;
+            }
+        }
+        
+        /* Landscape mode */
+        @media screen and (orientation: landscape) and (max-height: 500px) {
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.2em;
+            }
+            
+            .header p {
+                display: none;
+            }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            .app-container {
+                background: #1a1a1a;
+                color: #ffffff;
+            }
+            
+            .input-card, .result-card {
+                background: #2d2d2d;
+                color: #ffffff;
+            }
+            
+            input[type="number"], select {
+                background: #3d3d3d;
+                color: #ffffff;
+                border-color: #555;
+            }
+            
+            .result-row {
+                background: #3d3d3d;
+            }
+            
+            .result-label {
+                color: #ccc;
+            }
+            
+            .result-value {
+                color: #ffffff;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1>İSG Personel Hesaplama</h1>
+            <p>İş sağlığı güvenliği personeli çalışma sürelerini hesaplayın</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-card">
+                <div class="form-group">
+                    <label for="calisan-sayisi">👥 Çalışan Sayısı</label>
+                    <input type="number" id="calisan-sayisi" min="1" placeholder="Örn: 150" inputmode="numeric">
+                </div>
+                
+                <div class="form-group">
+                    <label for="tehlike-sinifi">⚠️ Tehlike Sınıfı</label>
+                    <select id="tehlike-sinifi">
+                        <option value="">Tehlike sınıfını seçiniz</option>
+                        <option value="az-tehlikeli">🟢 Az Tehlikeli</option>
+                        <option value="tehlikeli">🟡 Tehlikeli</option>
+                        <option value="cok-tehlikeli">🔴 Çok Tehlikeli</option>
+                    </select>
+                </div>
+                
+                <button class="calculate-btn" onclick="hesapla()">
+                    📊 Hesapla
+                </button>
+                
+                <button class="clear-btn" onclick="temizle()">
+                    🗑️ Temizle
+                </button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Hesaplanıyor...</p>
+            </div>
+            
+            <div class="results" id="results">
+                <div class="result-card">
+                    <h3>
+                        <span class="icon">👨‍💼</span>
+                        İş Güvenliği Uzmanı
+                    </h3>
+                    <div class="result-grid" id="isg-uzman-grid">
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>
+                        <span class="icon">👨‍⚕️</span>
+                        İşyeri Hekimi
+                    </h3>
+                    <div class="result-grid" id="hekim-grid">
+                    </div>
+                </div>
+                
+                <div class="result-card" id="diger-saglik-card" style="display: none;">
+                    <h3>
+                        <span class="icon">🏥</span>
+                        Diğer Sağlık Personeli
+                    </h3>
+                    <div class="result-grid" id="diger-saglik-grid">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function hesapla() {
+            const calisanSayisi = parseInt(document.getElementById('calisan-sayisi').value);
+            const tehlikeSinifi = document.getElementById('tehlike-sinifi').value;
+            
+            if (!calisanSayisi || !tehlikeSinifi) {
+                alert('❌ Lütfen tüm alanları doldurunuz!');
+                return;
+            }
+            
+            // Loading göster
+            showLoading();
+            
+            // Kısa animasyon için timeout
+            setTimeout(() => {
+                // İş güvenliği uzmanı hesaplamaları
+                hesaplaIsgUzmani(calisanSayisi, tehlikeSinifi);
+                
+                // İşyeri hekimi hesaplamaları
+                hesaplaIsyeriHekimi(calisanSayisi, tehlikeSinifi);
+                
+                // Diğer sağlık personeli hesaplamaları
+                hesaplaDigerSaglikPersoneli(calisanSayisi, tehlikeSinifi);
+                
+                // Sonuçları göster
+                hideLoading();
+                document.getElementById('results').classList.add('show');
+                
+                // Sonuçlara scroll
+                document.getElementById('results').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+                
+                // Haptic feedback (iOS)
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }, 800);
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').classList.remove('show');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+        
+        function temizle() {
+            document.getElementById('calisan-sayisi').value = '';
+            document.getElementById('tehlike-sinifi').value = '';
+            document.getElementById('results').classList.remove('show');
+            hideLoading();
+        }
+        
+        function hesaplaIsgUzmani(calisanSayisi, tehlikeSinifi) {
+            let dakikaPerCalisan, tamSureliLimit, uzmanlikSinifi;
+            
+            switch(tehlikeSinifi) {
+                case 'az-tehlikeli':
+                    dakikaPerCalisan = 10;
+                    tamSureliLimit = 1000;
+                    uzmanlikSinifi = 'C, B veya A Sınıfı';
+                    break;
+                case 'tehlikeli':
+                    dakikaPerCalisan = 20;
+                    tamSureliLimit = 500;
+                    uzmanlikSinifi = 'B veya A Sınıfı';
+                    break;
+                case 'cok-tehlikeli':
+                    dakikaPerCalisan = 40;
+                    tamSureliLimit = 250;
+                    uzmanlikSinifi = 'A Sınıfı';
+                    break;
+            }
+            
+            const toplamDakika = calisanSayisi * dakikaPerCalisan;
+            const toplamSaat = Math.ceil(toplamDakika / 60);
+            
+            let tamSureliSayisi = Math.floor(calisanSayisi / tamSureliLimit);
+            let kalanCalisan = calisanSayisi % tamSureliLimit;
+            let tamSureliGereksinimi;
+            
+            if (calisanSayisi >= tamSureliLimit) {
+                if (kalanCalisan > 0) {
+                    tamSureliSayisi += 1;
+                }
+                tamSureliGereksinimi = `${tamSureliSayisi} Tam Süreli`;
+            } else {
+                tamSureliGereksinimi = 'Kısmi Süreli';
+            }
+            
+            const grid = document.getElementById('isg-uzman-grid');
+            grid.innerHTML = `
+                <div class="highlight-box">
+                    <div class="highlight-value">${toplamSaat} Saat</div>
+                    <div class="highlight-label">${toplamDakika} dakika aylık çalışma</div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Görevlendirme Durumu</div>
+                    <div class="result-value">
+                        <span class="badge ${calisanSayisi >= tamSureliLimit ? 'badge-warning' : 'badge-info'}">${tamSureliGereksinimi}</span>
+                    </div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Gerekli Uzman Sayısı</div>
+                    <div class="result-value">${tamSureliSayisi > 0 ? tamSureliSayisi : 1} Kişi</div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Uzmanlık Sınıfı</div>
+                    <div class="result-value">
+                        <span class="badge badge-success">${uzmanlikSinifi}</span>
+                    </div>
+                </div>
+                
+                ${calisanSayisi >= tamSureliLimit ? 
+                    '<div class="alert">ℹ️ Bu işyerinde tam süreli iş güvenliği uzmanı görevlendirilmesi zorunludur.</div>' : 
+                    '<div class="alert alert-info">ℹ️ Bu işyerinde kısmi süreli görevlendirme yeterlidir.</div>'
+                }
+            `;
+        }
+        
+        function hesaplaIsyeriHekimi(calisanSayisi, tehlikeSinifi) {
+            let dakikaPerCalisan, tamSureliLimit;
+            
+            switch(tehlikeSinifi) {
+                case 'az-tehlikeli':
+                    dakikaPerCalisan = 5;
+                    tamSureliLimit = 2000;
+                    break;
+                case 'tehlikeli':
+                    dakikaPerCalisan = 10;
+                    tamSureliLimit = 1000;
+                    break;
+                case 'cok-tehlikeli':
+                    dakikaPerCalisan = 15;
+                    tamSureliLimit = 750;
+                    break;
+            }
+            
+            const toplamDakika = calisanSayisi * dakikaPerCalisan;
+            const toplamSaat = Math.ceil(toplamDakika / 60);
+            
+            let tamSureliSayisi = Math.floor(calisanSayisi / tamSureliLimit);
+            let kalanCalisan = calisanSayisi % tamSureliLimit;
+            let tamSureliGereksinimi;
+            
+            if (calisanSayisi >= tamSureliLimit) {
+                if (kalanCalisan > 0) {
+                    tamSureliSayisi += 1;
+                }
+                tamSureliGereksinimi = `${tamSureliSayisi} Tam Süreli`;
+            } else {
+                tamSureliGereksinimi = 'Kısmi Süreli';
+            }
+            
+            const grid = document.getElementById('hekim-grid');
+            grid.innerHTML = `
+                <div class="highlight-box">
+                    <div class="highlight-value">${toplamSaat} Saat</div>
+                    <div class="highlight-label">${toplamDakika} dakika aylık çalışma</div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Görevlendirme Durumu</div>
+                    <div class="result-value">
+                        <span class="badge ${calisanSayisi >= tamSureliLimit ? 'badge-warning' : 'badge-info'}">${tamSureliGereksinimi}</span>
+                    </div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Gerekli Hekim Sayısı</div>
+                    <div class="result-value">${tamSureliSayisi > 0 ? tamSureliSayisi : 1} Kişi</div>
+                </div>
+                
+                <div class="result-row">
+                    <div class="result-label">Zorunluluk</div>
+                    <div class="result-value">
+                        <span class="badge badge-success">Zorunlu</span>
+                    </div>
+                </div>
+                
+                ${calisanSayisi >= tamSureliLimit ? 
+                    '<div class="alert">ℹ️ Bu işyerinde tam süreli işyeri hekimi görevlendirilmesi zorunludur.</div>' : 
+                    '<div class="alert alert-info">ℹ️ Bu işyerinde kısmi süreli görevlendirme yeterlidir.</div>'
+                }
+            `;
+        }
+        
+        function hesaplaDigerSaglikPersoneli(calisanSayisi, tehlikeSinifi) {
+            const digerSaglikCard = document.getElementById('diger-saglik-card');
+            const grid = document.getElementById('diger-saglik-grid');
+            
+            if (tehlikeSinifi === 'cok-tehlikeli') {
+                digerSaglikCard.style.display = 'block';
+                
+                let dakikaPerCalisan;
+                if (calisanSayisi >= 10 && calisanSayisi <= 49) {
+                    dakikaPerCalisan = 10;
+                } else if (calisanSayisi >= 50 && calisanSayisi <= 249) {
+                    dakikaPerCalisan = 15;
+                } else if (calisanSayisi >= 250) {
+                    dakikaPerCalisan = 20;
+                } else {
+                    digerSaglikCard.style.display = 'none';
+                    return;
+                }
+                
+                const toplamDakika = calisanSayisi * dakikaPerCalisan;
+                const toplamSaat = Math.ceil(toplamDakika / 60);
+                
+                const tamSureliHekimVarMi = calisanSayisi >= 750;
+                const gereksinim = tamSureliHekimVarMi ? 'İsteğe Bağlı' : 'Zorunlu';
+                
+                grid.innerHTML = `
+                    <div class="highlight-box">
+                        <div class="highlight-value">${toplamSaat} Saat</div>
+                        <div class="highlight-label">${toplamDakika} dakika aylık çalışma</div>
+                    </div>
+                    
+                    <div class="result-row">
+                        <div class="result-label">Görevlendirme</div>
+                        <div class="result-value">
+                            <span class="badge ${tamSureliHekimVarMi ? 'badge-info' : 'badge-warning'}">${gereksinim}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="result-row">
+                        <div class="result-label">Açıklama</div>
+                        <div class="result-value">${tamSureliHekimVarMi ? 
+                            'Tam süreli hekim var, şart değil' : 
+                            'Çok tehlikeli sınıfta zorunlu'}</div>
+                    </div>
+                    
+                    ${tamSureliHekimVarMi ? 
+                        '<div class="alert alert-info">ℹ️ Tam süreli işyeri hekimi görevlendirildiği için diğer sağlık personeli şartı aranmaz. Ancak isteğe bağlı görevlendirilebilir.</div>' : 
+                        '<div class="alert">⚠️ Çok tehlikeli sınıfta diğer sağlık personeli görevlendirilmesi zorunludur.</div>'
+                    }
+                `;
+            } else {
+                digerSaglikCard.style.display = 'none';
+            }
+        }
+        
+        // Touch ve klavye optimizasyonları
+        document.getElementById('calisan-sayisi').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.target.blur(); // Klavyeyi kapat
+                hesapla();
+            }
+        });
+        
+        // Input validasyonu
+        document.getElementById('calisan-sayisi').addEventListener('input', function(e) {
+            const value = parseInt(e.target.value);
+            if (value < 1) {
+                e.target.value = '';
+            }
+        });
+        
+        // Sayfa yüklendiğinde focus
+        window.addEventListener('load', function() {
+            // iPhone'da zoom'u önlemek için
+            document.addEventListener('touchstart', function() {}, { passive: true });
+        });
+    </script>
+</body>
+</html>
